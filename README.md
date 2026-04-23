@@ -1,392 +1,351 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meri Tyari - Premium GS Quiz</title>
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <title>Tyari Pro - Final Master Edition</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
-        body { font-family: 'Poppins', sans-serif; background: #f8fafc; }
-        .hero-gradient { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
-        .option-card { transition: all 0.2s ease; border: 2px solid #f1f5f9; }
-        .option-active { border-color: #6366f1; background-color: #eef2ff; color: #4338ca; }
-        .pulse-timer { animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        body { background: radial-gradient(circle at top right, #0f172a, #020617); color: white; font-family: 'Inter', sans-serif; min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .active-opt { background: #4f46e5 !important; border-color: #818cf8 !important; transform: scale(1.02); box-shadow: 0 0 20px rgba(79, 70, 229, 0.3); }
+        .admin-input { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; color: white; width: 100%; outline: none; }
+        .admin-input:focus { border-color: #6366f1; }
     </style>
 </head>
-<body>
+<body class="hide-scrollbar">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // 150 Hindi Questions Data
-        const questionsDb = [
-            { id: 1, q: "पानीपत का प्रथम युद्ध किनके बीच लड़ा गया था?", o: ["बाबर और राणा सांगा", "शेर शाह सूरी और अकबर", "हुमायूँ और इब्राहिम लोदी", "बाबर और इब्राहिम लोदी"], a: 3 },
-            { id: 2, q: "बाबर ने ‘जिहाद’ की घोषणा किस युद्ध के दौरान की थी?", o: ["पानीपत", "खानवा", "चंदेरी", "कोई नहीं"], a: 1 },
-            { id: 3, q: "राणा सांगा ने बाबर से किस युद्ध में मुकाबला किया?", o: ["पानीपत", "खानवा", "चंदेरी", "घाघरा"], a: 1 },
-            { id: 4, q: "शेर शाह सूरी का मकबरा कहाँ है?", o: ["सासाराम", "मनेर", "पावापुरी", "पटना"], a: 0 },
-            { id: 5, q: "भारत में मुगल साम्राज्य की स्थापना किसने की?", o: ["हुमायूँ", "बाबर", "अकबर", "जहाँगीर"], a: 1 },
-            { id: 6, q: "खानवा का युद्ध कब हुआ?", o: ["1526", "1527", "1528", "1530"], a: 1 },
-            { id: 7, q: "चंदेरी का युद्ध किनके बीच हुआ?", o: ["बाबर और मेदिनी राय", "अकबर और राणा प्रताप", "हुमायूँ और शेर शाह", "बाबर और लोदी"], a: 0 },
-            { id: 8, q: "घाघरा का युद्ध कब हुआ?", o: ["1526", "1527", "1529", "1530"], a: 2 },
-            { id: 9, q: "शेर शाह सूरी का असली नाम क्या था?", o: ["फरीद खान", "बहलोल", "सिकंदर", "नसीरुद्दीन"], a: 0 },
-            { id: 10, q: "बाबर कहाँ का रहने वाला था?", o: ["ईरान", "अफगानिस्तान", "फरगना", "तुर्की"], a: 2 },
-            { id: 11, q: "हल्दीघाटी का युद्ध कब हुआ?", o: ["1576", "1565", "1580", "1600"], a: 0 },
-            { id: 12, q: "हल्दीघाटी का युद्ध किनके बीच हुआ?", o: ["अकबर और शिवाजी", "अकबर और राणा प्रताप", "बाबर और सांगा", "जहाँगीर और प्रताप"], a: 1 },
-            { id: 13, q: "अकबर का सेनापति कौन था?", o: ["मानसिंह", "बीरबल", "तानसेन", "टोडरमल"], a: 0 },
-            { id: 14, q: "अकबर ने जजिया कर कब हटाया?", o: ["1564", "1562", "1570", "1580"], a: 0 },
-            { id: 15, q: "दीन-ए-इलाही की स्थापना किसने की?", o: ["बाबर", "अकबर", "जहाँगीर", "शाहजहाँ"], a: 1 },
-            { id: 16, q: "अकबर के नवरत्न में कौन शामिल नहीं था?", o: ["बीरबल", "तानसेन", "अबुल फजल", "कबीर"], a: 3 },
-            { id: 17, q: "‘आइन-ए-अकबरी’ किसने लिखी?", o: ["अबुल फजल", "फैजी", "बदायूँनी", "रहीम"], a: 0 },
-            { id: 18, q: "अकबर का मकबरा कहाँ है?", o: ["दिल्ली", "आगरा (सिकंदरा)", "लाहौर", "फतेहपुर"], a: 1 },
-            { id: 19, q: "जहाँगीर का असली नाम क्या था?", o: ["सलीम", "खुर्रम", "दारा", "मुराद"], a: 0 },
-            { id: 20, q: "नूरजहाँ किसकी पत्नी थी?", o: ["अकबर", "जहाँगीर", "शाहजहाँ", "औरंगजेब"], a: 1 },
-            { id: 21, q: "शाहजहाँ ने क्या बनवाया?", o: ["कुतुब मीनार", "ताजमहल", "लाल किला", "दोनों B और C"], a: 3 },
-            { id: 22, q: "ताजमहल कहाँ है?", o: ["दिल्ली", "आगरा", "लखनऊ", "जयपुर"], a: 1 },
-            { id: 23, q: "औरंगजेब का पूरा नाम क्या था?", o: ["मुहीउद्दीन", "सलीम", "खुर्रम", "दारा"], a: 0 },
-            { id: 24, q: "औरंगजेब ने जजिया कर कब लगाया?", o: ["1679", "1658", "1707", "1660"], a: 0 },
-            { id: 25, q: "मराठा साम्राज्य के संस्थापक कौन थे?", o: ["शिवाजी", "बाजीराव", "शंभाजी", "बालाजी"], a: 0 },
-            { id: 26, q: "शिवाजी का राज्याभिषेक कब हुआ?", o: ["1674", "1680", "1666", "1658"], a: 0 },
-            { id: 27, q: "शिवाजी के गुरु कौन थे?", o: ["रामदास", "कबीर", "तुलसीदास", "गुरु नानक"], a: 0 },
-            { id: 28, q: "गुरु नानक का जन्म कहाँ हुआ?", o: ["अमृतसर", "तलवंडी", "पटना", "लाहौर"], a: 1 },
-            { id: 29, q: "सिखों के दसवें गुरु कौन थे?", o: ["गुरु अर्जुन", "गुरु गोविंद सिंह", "गुरु नानक", "गुरु हरगोविंद"], a: 1 },
-            { id: 30, q: "प्लासी का युद्ध कब हुआ?", o: ["1757", "1764", "1773", "1784"], a: 0 },
-            { id: 31, q: "प्लासी का युद्ध किनके बीच हुआ?", o: ["अंग्रेज और मीर जाफर", "अंग्रेज और सिराजुद्दौला", "मुगल और मराठा", "अंग्रेज और फ्रांसीसी"], a: 1 },
-            { id: 32, q: "बक्सर का युद्ध कब हुआ?", o: ["1757", "1764", "1772", "1780"], a: 1 },
-            { id: 33, q: "बक्सर का युद्ध किनके बीच हुआ?", o: ["अंग्रेज और मराठा", "अंग्रेज और बंगाल", "अंग्रेज और तीन शक्तियाँ", "अंग्रेज और फ्रांसीसी"], a: 2 },
-            { id: 34, q: "भारत में अंग्रेजों का पहला गवर्नर जनरल कौन था?", o: ["वॉरेन हेस्टिंग्स", "लॉर्ड क्लाइव", "डलहौजी", "कर्जन"], a: 0 },
-            { id: 35, q: "1857 की क्रांति कब हुई?", o: ["1857", "1858", "1860", "1855"], a: 0 },
-            { id: 36, q: "1857 की क्रांति कहाँ से शुरू हुई?", o: ["दिल्ली", "मेरठ", "कानपुर", "झांसी"], a: 1 },
-            { id: 37, q: "झांसी की रानी कौन थी?", o: ["लक्ष्मीबाई", "दुर्गावती", "पद्मिनी", "अहिल्या"], a: 0 },
-            { id: 38, q: "महात्मा गांधी का जन्म कब हुआ?", o: ["1869", "1875", "1880", "1857"], a: 0 },
-            { id: 39, q: "गांधीजी का जन्म स्थान?", o: ["साबरमती", "पोरबander", "दिल्ली", "मुंबई"], a: 1 },
-            { id: 40, q: "असहयोग आंदोलन कब शुरू हुआ?", o: ["1919", "1920", "1930", "1942"], a: 1 },
-            { id: 41, q: "नमक सत्याग्रह कब हुआ?", o: ["1930", "1920", "1942", "1919"], a: 0 },
-            { id: 42, q: "भारत छोड़ो आंदोलन कब हुआ?", o: ["1942", "1930", "1920", "1919"], a: 0 },
-            { id: 43, q: "स्वतंत्रता कब मिली?", o: ["1947", "1950", "1942", "1935"], a: 0 },
-            { id: 44, q: "भारत का संविधान कब लागू हुआ?", o: ["1950", "1947", "1949", "1952"], a: 0 },
-            { id: 45, q: "भारत का पहला राष्ट्रपति कौन था?", o: ["राजेंद्र प्रसाद", "नेहरू", "गांधी", "पटेल"], a: 0 },
-            { id: 46, q: "भारत का पहला प्रधानमंत्री कौन था?", o: ["गांधी", "नेहरू", "पटेल", "बोस"], a: 1 },
-            { id: 47, q: "राष्ट्रीय ध्वज कब अपनाया गया?", o: ["1947", "1950", "1942", "1930"], a: 0 },
-            { id: 48, q: "राष्ट्रीय गान किसने लिखा?", o: ["टैगोर", "गांधी", "नेहरू", "बंकिम"], a: 0 },
-            { id: 49, q: "राष्ट्रीय गीत कौन सा है?", o: ["जन गण मन", "वंदे मातरम्", "सारे जहाँ से अच्छा", "ऐ मेरे वतन"], a: 1 },
-            { id: 50, q: "भारत की राजधानी क्या है?", o: ["मुंबई", "दिल्ली", "कोलकाता", "चेन्नई"], a: 1 },
-            { id: 51, q: "भारत का राष्ट्रीय पशु कौन है?", o: ["शेर", "बाघ", "हाथी", "घोड़ा"], a: 1 },
-            { id: 52, q: "भारत का राष्ट्रीय पक्षी कौन है?", o: ["तोता", "मोर", "कबूतर", "बाज"], a: 1 },
-            { id: 53, q: "भारत का राष्ट्रीय फूल कौन है?", o: ["गुलाब", "कमल", "गेंदा", "चमेली"], a: 1 },
-            { id: 54, q: "भारत का राष्ट्रीय खेल कौन सा माना जाता है?", o: ["क्रिकेट", "हॉकी", "कबड्डी", "फुटबॉल"], a: 1 },
-            { id: 55, q: "भारत का राष्ट्रीय पेड़ कौन है?", o: ["पीपल", "नीम", "बरगद", "आम"], a: 2 },
-            { id: 56, q: "भारत का राष्ट्रीय फल कौन है?", o: ["सेब", "केला", "आम", "संतरा"], a: 2 },
-            { id: 57, q: "भारत का राष्ट्रीय जलीय जीव कौन है?", o: ["मगरमच्छ", "डॉल्फिन", "व्हेल", "कछुआ"], a: 1 },
-            { id: 58, q: "भारत का राष्ट्रीय गीत कौन सा है?", o: ["जन गण मन", "वंदे मातरम्", "सारे जहाँ से अच्छा", "जननी जन्मभूमि"], a: 1 },
-            { id: 59, q: "भारत का राष्ट्रीय गान किसने लिखा?", o: ["बंकिम चंद्र", "रविंद्रनाथ टैगोर", "गांधी", "नेहरू"], a: 1 },
-            { id: 60, q: "‘वंदे मातरम्’ किसने लिखा?", o: ["टैगोर", "बंकिम चंद्र चट्टोपाध्याय", "प्रेमचंद", "गांधी"], a: 1 },
-            { id: 61, q: "भारत का सबसे बड़ा राज्य (क्षेत्रफल) कौन सा है?", o: ["यूपी", "महाराष्ट्र", "राजस्थान", "मध्य प्रदेश"], a: 2 },
-            { id: 62, q: "भारत का सबसे छोटा राज्य कौन सा है?", o: ["गोवा", "सिक्किम", "त्रिपुरा", "मिजोरम"], a: 0 },
-            { id: 63, q: "भारत का सबसे अधिक जनसंख्या वाला राज्य कौन सा है?", o: ["महाराष्ट्र", "बिहार", "उत्तर प्रदेश", "बंगाल"], a: 2 },
-            { id: 64, q: "भारत की सबसे लंबी नदी कौन सी है?", o: ["गंगा", "यमुना", "ब्रह्मपुत्र", "नर्मदा"], a: 0 },
-            { id: 65, q: "गंगा नदी का उद्गम स्थल क्या है?", o: ["गंगोत्री", "यमुनोत्री", "केदारनाथ", "बद्रीनाथ"], a: 0 },
-            { id: 66, q: "यमुना नदी का उद्गम कहाँ है?", o: ["गंगोत्री", "यमुनोत्री", "हिमालय", "अमरनाथ"], a: 1 },
-            { id: 67, q: "भारत की राजधानी क्या है?", o: ["मुंबई", "दिल्ली", "कोलकाता", "चेन्नई"], a: 1 },
-            { id: 68, q: "भारत के वर्तमान राष्ट्रपति कौन हैं?", o: ["रामनाथ कोविंद", "द्रौपदी मुर्मू", "प्रणब मुखर्जी", "ए.पी.जे. अब्दुल कलाम"], a: 1 },
-            { id: 69, q: "भारत के वर्तमान प्रधानमंत्री कौन हैं?", o: ["राहुल गांधी", "नरेंद्र मोदी", "अमित शाह", "मनमोहन सिंह"], a: 1 },
-            { id: 70, q: "संयुक्त राष्ट्र संघ (UNO) की स्थापना कब हुई?", o: ["1942", "1945", "1950", "1939"], a: 1 },
-            { id: 71, q: "UNO का मुख्यालय कहाँ है?", o: ["लंदन", "पेरिस", "न्यूयॉर्क", "जिनेवा"], a: 2 },
-            { id: 72, q: "विश्व का सबसे बड़ा महाद्वीप कौन सा है?", o: ["अफ्रीका", "एशिया", "यूरोप", "ऑस्ट्रेलिया"], a: 1 },
-            { id: 73, q: "विश्व का सबसे छोटा महाद्वीप कौन सा है?", o: ["यूरोप", "ऑस्ट्रेलिया", "अंटार्कटिका", "अफ्रीका"], a: 1 },
-            { id: 74, q: "विश्व का सबसे बड़ा महासागर कौन सा hai?", o: ["अटलांटिक", "हिंद", "प्रशांत", "आर्कटिक"], a: 2 },
-            { id: 75, q: "विश्व का सबसे छोटा महासागर कौन सा है?", o: ["हिंद", "अटलांटिक", "आर्कटिक", "प्रशांत"], a: 2 },
-            { id: 76, q: "सूर्य किस ग्रह के सबसे निकट है?", o: ["शुक्र", "बुध", "पृथ्वी", "मंगल"], a: 1 },
-            { id: 77, q: "पृथ्वी का उपग्रह कौन है?", o: ["सूर्य", "चंद्रमा", "मंगल", "शुक्र"], a: 1 },
-            { id: 78, q: "सौरमंडल का सबसे बड़ा ग्रह कौन है?", o: ["पृथ्वी", "शनि", "बृहस्पति", "मंगल"], a: 2 },
-            { id: 79, q: "लाल ग्रह किसे कहते हैं?", o: ["शुक्र", "मंगल", "शनि", "बुध"], a: 1 },
-            { id: 80, q: "पृथ्वी का आकार कैसा है?", o: ["गोल", "चपटा", "अंडाकार", "घन"], a: 2 },
-            { id: 81, q: "प्रकाश की गति क्या है?", o: ["3×10⁸ m/s", "3×10⁶ m/s", "3×10⁵ m/s", "3×10⁷ m/s"], a: 0 },
-            { id: 82, q: "पानी का रासायनिक सूत्र क्या है?", o: ["CO₂", "H₂O", "O₂", "H₂"], a: 1 },
-            { id: 83, q: "ऑक्सीजन का रासायनिक चिन्ह क्या hai?", o: ["O", "Ox", "Og", "On"], a: 0 },
-            { id: 84, q: "सोने का रासायनिक चिन्ह क्या है?", o: ["Ag", "Au", "Go", "Gd"], a: 1 },
-            { id: 85, q: "लोहे का रासायनिक चिन्ह क्या है?", o: ["Fe", "Ir", "L", "Lo"], a: 0 },
-            { id: 86, q: "मानव शरीर में सबसे बड़ी हड्डी कौन सी है?", o: ["रीढ़", "फीमर", "हाथ", "खोपड़ी"], a: 1 },
-            { id: 87, q: "रक्त का लाल रंग किसके कारण होता है?", o: ["हीमोग्लोबिन", "पानी", "ऑक्सीजन", "आयरन"], a: 0 },
-            { id: 88, q: "विटामिन C का स्रोत क्या है?", o: ["दूध", "नींबू", "चावल", "रोटी"], a: 1 },
-            { id: 89, q: "कंप्यूटर का दिमाग किसे कहते हैं?", o: ["RAM", "CPU", "Monitor", "Keyboard"], a: 1 },
-            { id: 90, q: "इंटरनेट का पूरा नाम क्या है?", o: ["International Network", "Interconnected Network", "Internal Network", "None"], a: 1 },
-            { id: 91, q: "भारत में पहली रेल कब चली?", o: ["1853", "1860", "1870", "1880"], a: 0 },
-            { id: 92, q: "भारत का पहला उपग्रह कौन सा था?", o: ["INSAT", "आर्यभट्ट", "चंद्रयान", "मंगलयान"], a: 1 },
-            { id: 93, q: "ISRO का मुख्यालय कहाँ है?", o: ["मुंबई", "दिल्ली", "बेंगलुरु", "चेन्नई"], a: 2 },
-            { id: 94, q: "चंद्रयान-1 कब लॉन्च हुआ?", o: ["2008", "2010", "2012", "2005"], a: 0 },
-            { id: 95, q: "भारत का सबसे ऊँचा पर्वत कौन सा है?", o: ["K2", "कंचनजंगा", "एवरेस्ट", "नंदा देवी"], a: 1 },
-            { id: 96, q: "विश्व का सबसे ऊँचा पर्वत कौन सा है?", o: ["K2", "एवरेस्ट", "कंचनजंगा", "अन्नपूर्णा"], a: 1 },
-            { id: 97, q: "‘जय जवान जय किसान’ का नारा किसने दिया?", o: ["गांधी", "नेहरू", "लाल बहादुर शास्त्री", "पटेल"], a: 2 },
-            { id: 98, q: "भारतीय संविधान के निर्माता कौन माने जाते हैं?", o: ["गांधी", "नेहरू", "डॉ. भीमराव अंबेडकर", "पटेल"], a: 2 },
-            { id: 99, q: "भारतीय राष्ट्रीय कांग्रेस की स्थापना कब हुई?", o: ["1885", "1905", "1919", "1942"], a: 0 },
-            { id: 100, q: "भारत का राष्ट्रीय चिन्ह क्या है?", o: ["अशोक स्तंभ", "चक्र", "ताजमहल", "कमल"], a: 0 },
-            { id: 101, q: "भारत का राष्ट्रीय ध्वज किसने डिजाइन किया?", o: ["महात्मा गांधी", "पिंगली वेंकैया", "जवाहरलाल नेहरू", "सुभाष चंद्र बोस"], a: 1 },
-            { id: 102, q: "‘सत्यमेव जयते’ किस उपनिषद से लिया गया है?", o: ["ईश उपनिषद", "मुण्डक उपनिषद", "कठ उपनिषद", "केन उपनिषद"], a: 1 },
-            { id: 103, q: "भारतीय संविधान में कितनी अनुसूचियाँ हैं?", o: ["10", "12", "8", "14"], a: 1 },
-            { id: 104, q: "संविधान सभा के अध्यक्ष कौन थे?", o: ["डॉ. अंबेडकर", "राजेंद्र प्रसाद", "नेहरू", "पटेल"], a: 1 },
-            { id: 105, q: "भारतीय संविधान कब लागू हुआ?", o: ["26 जनवरी 1950", "15 अगस्त 1947", "2 अक्टूबर 1949", "26 नवंबर 1949"], a: 0 },
-            { id: 106, q: "योजना आयोग का गठन कब हुआ था?", o: ["1947", "1950", "1952", "1960"], a: 1 },
-            { id: 107, q: "भारत का सर्वोच्च न्यायालय कहाँ स्थित है?", o: ["मुंबई", "कोलकाता", "दिल्ली", "चेन्नई"], a: 2 },
-            { id: 108, q: "लोकसभा का कार्यकाल कितने वर्षों का होता है?", o: ["4 वर्ष", "5 वर्ष", "6 वर्ष", "3 वर्ष"], a: 1 },
-            { id: 109, q: "राज्यसभा के सदस्य का कार्यकाल कितना होता है?", o: ["4 वर्ष", "5 वर्ष", "6 वर्ष", "3 वर्ष"], a: 2 },
-            { id: 110, q: "भारत का उपराष्ट्रपति कौन होता है?", o: ["प्रधानमंत्री", "राष्ट्रपति", "राज्यसभा का सभापति", "लोकसभा अध्यक्ष"], a: 2 },
-            { id: 111, q: "भारत में कितने राज्य हैं?", o: ["28", "29", "30", "27"], a: 0 },
-            { id: 112, q: "भारत में कितने केंद्र शासित प्रदेश हैं?", o: ["7", "8", "9", "6"], a: 1 },
-            { id: 113, q: "भारतीय संसद के कितने सदन हैं?", o: ["1", "2", "3", "4"], a: 1 },
-            { id: 114, q: "लोकसभा का अध्यक्ष कौन होता है?", o: ["राष्ट्रपति", "प्रधानमंत्री", "स्पीकर", "गवर्नर"], a: 2 },
-            { id: 115, q: "भारत के पहले उपराष्ट्रपति कौन थे?", o: ["डॉ. राधाकृष्णन", "डॉ. अंबेडकर", "नेहरू", "राजेंद्र प्रसाद"], a: 0 },
-            { id: 116, q: "भारत के पहले गृहमंत्री कौन थे?", o: ["पटेल", "नेहरू", "गांधी", "बोस"], a: 0 },
-            { id: 117, q: "RBI की स्थापना कब हुई?", o: ["1935", "1947", "1950", "1969"], a: 0 },
-            { id: 118, q: "भारत की पहली महिला प्रधानमंत्री कौन थीं?", o: ["सोनिया गांधी", "इंदिरा गांधी", "प्रतिभा पाटिल", "मीरा कुमार"], a: 1 },
-            { id: 119, q: "भारत की पहली महिला राष्ट्रपति कौन थीं?", o: ["इंदिरा गांधी", "प्रतिभा पाटिल", "सरोजिनी नायडू", "मीरा कुमार"], a: 1 },
-            { id: 120, q: "‘भारतीय मिसाइल मैन’ किसे कहा जाता है?", o: ["विक्रम साराभाई", "ए.पी.जे. अब्दुल कलाम", "होमी भाभा", "सतीश धवन"], a: 1 },
-            { id: 121, q: "विक्रम साराभाई किस क्षेत्र से जुड़े थे?", o: ["राजनीति", "विज्ञान", "खेल", "साहित्य"], a: 1 },
-            { id: 122, q: "होमी भाभा किसके जनक माने जाते हैं?", o: ["अंतरिक्ष कार्यक्रम", "परमाणु कार्यक्रम", "रेलवे", "सेना"], a: 1 },
-            { id: 123, q: "भारत का सबसे बड़ा बाँध कौन सा है?", o: ["भाखड़ा नांगल", "हीराकुंड", "टिहरी", "सरदार सरोवर"], a: 2 },
-            { id: 124, q: "भाखड़ा नांगल बाँध किस नदी पर है?", o: ["गंगा", "सतलुज", "यमुना", "नर्मदा"], a: 1 },
-            { id: 125, q: "हीराकुंड बाँध किस नदी पर है?", o: ["महानदी", "गंगा", "नर्मदा", "गोदावरी"], a: 0 },
-            { id: 126, q: "टिहरी बाँध किस राज्य में है?", o: ["उत्तर प्रदेश", "उत्तराखंड", "हिमाचल", "बिहार"], a: 1 },
-            { id: 127, q: "भारत का सबसे बड़ा रेगिस्तान कौन सा है?", o: ["थार", "सहारा", "गोबी", "कालाहारी"], a: 0 },
-            { id: 128, q: "थार रेगिस्तान किस राज्य में है?", o: ["गुजरात", "राजस्थान", "हरियाणा", "पंजाब"], a: 1 },
-            { id: 129, q: "भारत का सबसे बड़ा बंदरगाह कौन सा hai?", o: ["मुंबई", "कोलकाता", "चेन्नई", "विशाखापट्टनम"], a: 0 },
-            { id: 130, q: "भारत का सबसे बड़ा हवाई अड्डा कौन सा है?", o: ["मुंबई", "दिल्ली", "बेंगलुरु", "हैदराबाद"], a: 1 },
-            { id: 131, q: "भारत का सबसे बड़ा रेलवे स्टेशन कौन सा है?", o: ["हावड़ा", "दिल्ली", "गोरखपुर", "मुंबई"], a: 2 },
-            { id: 132, q: "भारत का सबसे बड़ा प्लेटफॉर्म कहाँ है?", o: ["गोरखपुर", "हावड़ा", "दिल्ली", "मुंबई"], a: 0 },
-            { id: 133, q: "भारत का सबसे लंबा रेलवे प्लेटफॉर्म कहाँ है?", o: ["गोरखपुर", "हुबली", "खड़गपुर", "हावड़ा"], a: 2 },
-            { id: 134, q: "भारत का सबसे बड़ा संग्रहालय कहाँ है?", o: ["दिल्ली", "कोलकाता", "मुंबई", "चेन्नई"], a: 1 },
-            { id: 135, q: "भारत का सबसे बड़ा चिड़ियाघर कहाँ है?", o: ["दिल्ली", "कोलकाता", "लखनऊ", "चेन्नई"], a: 1 },
-            { id: 136, q: "भारत का सबसे बड़ा स्टेडियम कौन सा है?", o: ["वानखेड़े", "ईडन गार्डन्स", "नरेंद्र मोदी स्टेडियम", "फिरोजशाह कोटला"], a: 2 },
-            { id: 137, q: "ओलंपिक खेल कितने वर्षों में होते हैं?", o: ["2", "3", "4", "5"], a: 2 },
-            { id: 138, q: "एशियाई खेल कितने वर्षों में होते हैं?", o: ["2", "3", "4", "5"], a: 2 },
-            { id: 139, q: "क्रिकेट में एक ओवर में कितनी गेंद होती हैं?", o: ["5", "6", "7", "8"], a: 1 },
-            { id: 140, q: "फुटबॉल में कितने खिलाड़ी होते हैं (एक टीम में)?", o: ["9", "10", "11", "12"], a: 2 },
-            { id: 141, q: "हॉकी में एक टीम में कितने खिलाड़ी होते हैं?", o: ["9", "10", "11", "12"], a: 2 },
-            { id: 142, q: "कबड्डी में एक टीम में कितने खिलाड़ी होते हैं?", o: ["5", "6", "7", "8"], a: 2 },
-            { id: 143, q: "शतरंज में कुल कितने खाने होते हैं?", o: ["32", "64", "16", "48"], a: 1 },
-            { id: 144, q: "भारत रत्न कब शुरू हुआ?", o: ["1954", "1950", "1960", "1947"], a: 0 },
-            { id: 145, q: "भारत रत्न पाने वाले पहले व्यक्ति कौन थे?", o: ["नेहरू", "राजेंद्र प्रसाद", "सी. राजगोपालाचारी", "गांधी"], a: 2 },
-            { id: 146, q: "नोबेल पुरस्कार किस देश में दिया जाता है?", o: ["अमेरिका", "स्वीडन", "भारत", "फ्रांस"], a: 1 },
-            { id: 147, q: "नोबेल पुरस्कार की शुरुआत कब हुई?", o: ["1901", "1890", "1910", "1920"], a: 0 },
-            { id: 148, q: "पहला नोबेल पुरस्कार किसे मिला?", o: ["आइंस्टीन", "मैरी क्यूरी", "हेनरी ड्यूनेंट", "न्यूटन"], a: 2 },
-            { id: 149, q: "‘रामायण’ किसने लिखी?", o: ["व्यास", "वाल्मीकि", "तुलसीदास", "कालिदास"], a: 1 },
-            { id: 150, q: "‘महाभारत’ किसने लिखी?", o: ["वाल्मीकि", "व्यास", "कालिदास", "कबीर"], a: 1 }
-        ];
+        function App() {
+            // --- State Management ---
+            const [view, setView] = useState('home'); 
+            const [activeParent, setActiveParent] = useState(null);
+            const [activeTest, setActiveTest] = useState(null);
+            const [currentQuestions, setCurrentQuestions] = useState([]);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [userAnswers, setUserAnswers] = useState({});
+            const [timeLeft, setTimeLeft] = useState(0);
 
-            function App() {
-            const [view, setView] = useState('home');
-            const [questions, setQuestions] = useState(() => {
-    const saved = localStorage.getItem('my_db');
-    return saved ? JSON.parse(saved) : questionsDb; 
-});
-const [clickCount, setClickCount] = useState(0);
+            const [db, setDb] = useState(() => {
+                const saved = localStorage.getItem('tyari_pro_ultra_v1');
+                return saved ? JSON.parse(saved) : {
+                    sections: [],
+                    ads: [{ id: 1, text: "Welcome to Tyari Pro! Start your success journey today.", active: true }],
+                    appTitle: "TYARI PRO"
+                };
+            });
 
-// Secret Admin Entry Function
-const handleSecretClick = () => {
-    setClickCount(prev => prev + 1);
-    if (clickCount + 1 >= 3) {
-        const pass = prompt("Admin Password:");
-        if (pass === "Nazim@483563") setView('admin');
-        setClickCount(0);
-    }
-};
-            const [testQs, setTestQs] = useState([]);
-            const [currIdx, setCurrIdx] = useState(0);
-            const [userAns, setUserAns] = useState({});
-            const [timer, setTimer] = useState(360);
+            useEffect(() => { localStorage.setItem('tyari_pro_ultra_v1', JSON.stringify(db)); }, [db]);
 
+            // --- Timer Logic ---
             useEffect(() => {
-                let interval;
-                if (view === 'test' && timer > 0) {
-                    interval = setInterval(() => setTimer(t => t - 1), 1000);
-                } else if (timer === 0 && view === 'test') {
-                    setView('result');
-                }
-                return () => clearInterval(interval);
-            }, [view, timer]);
+                if (view === 'testing' && timeLeft > 0) {
+                    const timer = setInterval(() => setTimeLeft(p => p - 1), 1000);
+                    return () => clearInterval(timer);
+                } else if (timeLeft === 0 && view === 'testing') setView('result');
+            }, [timeLeft, view]);
 
-            const startTest = () => {
-                let history = JSON.parse(localStorage.getItem('mt_history') || '[]');
-                let available = questionsDb.filter(q => !history.includes(q.id));
-                if (available.length < 15) { history = []; available = [...questionsDb]; }
-                const picked = available.sort(() => 0.5 - Math.random()).slice(0, 15);
-                localStorage.setItem('mt_history', JSON.stringify([...history, ...picked.map(p => p.id)]));
-                setTestQs(picked);
-                setUserAns({});
-                setCurrIdx(0);
-                setTimer(360);
-                setView('test');
+            // --- Admin Security ---
+            let clickCount = 0;
+            const handleHiddenAdmin = () => {
+                clickCount++;
+                if (clickCount === 3) {
+                    if(prompt("Enter Admin Master Key:") === "Nazim@483563") setView('admin');
+                    clickCount = 0;
+                }
+                setTimeout(() => { clickCount = 0; }, 1000);
             };
 
-            const score = testQs.reduce((acc, q, i) => (userAns[i] === q.a ? acc + 1 : acc), 0);
+            // --- Core Functions ---
+            const startExam = (test) => {
+                if (!test.questions || test.questions.length === 0) return alert("Is test mein sawal nahi hain!");
+                const shuffled = [...test.questions].sort(() => 0.5 - Math.random()).slice(0, test.qLimit || 25);
+                setCurrentQuestions(shuffled);
+                setActiveTest(test);
+                setTimeLeft((test.time || 60) * 60);
+                setUserAnswers({});
+                setCurrentIndex(0);
+                setView('testing');
+            };
 
-            // Home View
-            if (view === 'home') return (
-                <div className="min-h-screen hero-gradient flex items-center justify-center p-6">
-                    <div className="glass-card rounded-[2rem] p-10 max-w-sm w-full text-center shadow-2xl">
-                        <div onClick={handleSecretClick} className="w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl cursor-pointer active:scale-95 transition transform rotate-12">
-    <i className="fas fa-rocket text-white text-4xl -rotate-12"></i>
-
-                            <i className="fas fa-rocket text-white text-4xl -rotate-12"></i>
+            // --- UI Components ---
+            const HomeView = () => (
+                <div className="max-w-5xl mx-auto p-6 pt-10 animate-in fade-in">
+                    <header className="flex justify-between items-center mb-12">
+                        <h1 className="text-3xl font-black italic tracking-tighter text-indigo-500 uppercase">{db.appTitle}</h1>
+                        <div onClick={handleHiddenAdmin} className="w-12 h-12 cursor-pointer flex items-center justify-center text-gray-700 hover:text-indigo-400 transition">
+                            <i className="fas fa-shield-alt"></i>
                         </div>
-                        <h1 className="text-4xl font-extrabold text-indigo-900 mb-2">Meri Tyari</h1>
-                        <p className="text-indigo-500 font-semibold mb-10">Premium GS Practice App</p>
-                        
-                        <div className="space-y-4 mb-10">
-                            <div className="flex items-center gap-4 bg-indigo-50 p-4 rounded-2xl">
-                                <i className="fas fa-list-ol text-indigo-500"></i>
-                                <span className="text-indigo-900 font-bold">15 Questions</span>
-                            </div>
-                            <div className="flex items-center gap-4 bg-indigo-50 p-4 rounded-2xl">
-                                <i className="fas fa-clock text-indigo-500"></i>
-                                <span className="text-indigo-900 font-bold">6 Minutes</span>
-                            </div>
-                        </div>
+                    </header>
 
-                        <button onClick={startTest} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-2xl font-bold text-xl shadow-lg transition-all active:scale-95">
-                            Start Test <i className="fas fa-arrow-right ml-2"></i>
-                        </button>
+                    {db.ads.map(ad => ad.active && (
+                        <div key={ad.id} className="glass p-4 rounded-2xl mb-10 border-dashed border-indigo-500/40 text-center animate-pulse text-sm">
+                            <i className="fas fa-bullhorn mr-2 text-indigo-400"></i> {ad.text}
+                        </div>
+                    ))}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {db.sections.length === 0 && <p className="col-span-3 text-center text-gray-500 italic py-20 border-2 border-dashed border-white/5 rounded-[3rem]">Admin Panel se Content add karein...</p>}
+                        {db.sections.map(sec => (
+                            <div key={sec.id} onClick={() => {setActiveParent(sec); setView('sub-list');}} className="glass p-10 rounded-[3rem] cursor-pointer hover:border-indigo-500 border border-transparent transition-all group">
+                                <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-500 transition-colors">
+                                    <i className="fas fa-layer-group text-indigo-500 group-hover:text-white text-xl"></i>
+                                </div>
+                                <h3 className="text-2xl font-bold">{sec.title}</h3>
+                                <p className="text-gray-500 text-xs mt-2 uppercase tracking-widest">{sec.tests?.length || 0} Test Packs</p>
+                            </div>
+                        ))}
                     </div>
-                 </div>
+                </div>
             );
-            
-            // Test View
-            if (view === 'admin') return (
-    <div className="min-h-screen bg-white p-6 max-w-lg mx-auto overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Admin Panel</h2>
-            <button onClick={() => setView('home')} className="text-red-500 font-bold underline">Close</button>
-        </div>
-        <div className="space-y-4 bg-gray-100 p-4 rounded-2xl mb-6">
-            <input id="q" placeholder="Sawal likhein" className="w-full p-3 border rounded-xl" />
-            <input id="o1" placeholder="Option A" className="w-full p-2 border rounded-xl" />
-            <input id="o2" placeholder="Option B" className="w-full p-2 border rounded-xl" />
-            <input id="o3" placeholder="Option C" className="w-full p-2 border rounded-xl" />
-            <input id="o4" placeholder="Option D" className="w-full p-2 border rounded-xl" />
-            <select id="ans" className="w-full p-3 border rounded-xl">
-                <option value="0">A Sahi hai</option>
-                <option value="1">B Sahi hai</option>
-                <option value="2">C Sahi hai</option>
-                <option value="3">D Sahi hai</option>
-            </select>
-            <button onClick={() => {
-                const newQ = {
-                    id: Date.now(),
-                    q: document.getElementById('q').value,
-                    o: [document.getElementById('o1').value, document.getElementById('o2').value, document.getElementById('o3').value, document.getElementById('o4').value],
-                    a: parseInt(document.getElementById('ans').value)
+
+            const SubListView = () => (
+                <div className="max-w-2xl mx-auto p-6 pt-10">
+                    <button onClick={() => setView('home')} className="mb-8 text-gray-500 hover:text-white font-bold"><i className="fas fa-chevron-left mr-2"></i> BACK</button>
+                    <h2 className="text-4xl font-black mb-10 text-indigo-500 uppercase">{activeParent.title}</h2>
+                    <div className="space-y-4">
+                        {activeParent.tests.map(test => (
+                            <div key={test.id} onClick={() => startExam(test)} className="glass p-6 rounded-[2rem] flex justify-between items-center cursor-pointer hover:bg-white/5 border border-transparent hover:border-indigo-500/30 transition group">
+                                <div>
+                                    <p className="font-bold text-lg group-hover:text-indigo-400">{test.title}</p>
+                                    <p className="text-[10px] text-gray-500 uppercase mt-1 font-bold">Questions: {test.qLimit} | Time: {test.time}m | Neg: -{test.neg}</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500 transition">
+                                    <i className="fas fa-play text-xs text-indigo-500 group-hover:text-white"></i>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const AdminPanel = () => {
+                const [tab, setTab] = useState('structure');
+                const [newSec, setNewSec] = useState("");
+                const [selectedParentId, setSelectedParentId] = useState("");
+                const [selectedTestId, setSelectedTestId] = useState("");
+                const [qData, setQData] = useState({ text: '', options: ['', '', '', ''], correct: 0, analysis: '' });
+
+                const createTest = (parentID) => {
+                    const title = prompt("Test Name (e.g. Test 1):");
+                    if(!title) return;
+                    const qLimit = prompt("Test Question Limit (e.g. 25):", "25");
+                    const time = prompt("Timer (Minutes):", "60");
+                    const neg = prompt("Negative Marking (0.25, 0.33):", "0.25");
+                    
+                    const updated = db.sections.map(s => s.id === parentID ? {...s, tests: [...s.tests, {id: Date.now(), title, qLimit: parseInt(qLimit), time: parseInt(time), neg: parseFloat(neg), questions: []}]} : s);
+                    setDb({...db, sections: updated});
                 };
-                const updated = [...questions, newQ];
-                setQuestions(updated);
-                localStorage.setItem('my_db', JSON.stringify(updated));
-                alert("Sawal Save Ho Gaya!");
-                document.getElementById('q').value = ''; // Clear input
-            }} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Add Question</button>
-        </div>
-        <h3 className="font-bold mb-4 italic">Sawal Bank ({questions.length})</h3>
-        {questions.slice().reverse().map(q => (
-            <div key={q.id} className="flex justify-between border-b py-2 text-sm bg-white">
-                <span className="truncate w-4/5 text-gray-700">{q.q}</span>
-                <button onClick={() => {
-                    const filtered = questions.filter(x => x.id !== q.id);
-                    setQuestions(filtered);
-                    localStorage.setItem('my_db', JSON.stringify(filtered));
-                }} className="text-red-500 font-bold">Delete</button>
-            </div>
-        ))}
-    </div>
-);
-            if (view === 'test') return (
-                <div className="min-h-screen bg-gray-50 pb-24">
-                    <div className="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-50">
-                        <div className="font-bold text-gray-400">Question <span className="text-indigo-600">{currIdx + 1}/15</span></div>
-                        <div className={`font-bold px-4 py-1 rounded-xl flex items-center gap-2 ${timer < 60 ? 'bg-red-100 text-red-600 pulse-timer' : 'bg-indigo-50 text-indigo-600'}`}>
-                            <i className="fas fa-stopwatch"></i> {Math.floor(timer/60)}:{(timer%60).toString().padStart(2,'0')}
-                        </div>
-                    </div>
-                    <div className="p-4 max-w-lg mx-auto">
-                        <div className="bg-white p-8 rounded-3xl shadow-sm mb-8 border border-gray-100 mt-4 min-h-[140px] flex items-center">
-                            <h2 className="text-2xl font-bold text-gray-800 leading-snug">{testQs[currIdx].q}</h2>
-                        </div>
-                        <div className="space-y-4">
-                            {testQs[currIdx].o.map((opt, i) => (
-                                <button key={i} onClick={() => setUserAns({...userAns, [currIdx]: i})}
-                                    className={`w-full text-left p-5 rounded-2xl font-bold option-card bg-white shadow-sm flex items-center ${userAns[currIdx] === i ? 'option-active' : 'text-gray-600'}`}>
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-4 font-bold ${userAns[currIdx] === i ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                                        {String.fromCharCode(65+i)}
+
+                return (
+                    <div className="max-w-5xl mx-auto p-6">
+                        <div className="glass p-8 rounded-[3rem] border border-white/10">
+                            <div className="flex gap-8 mb-10 border-b border-white/5 pb-4">
+                                <button onClick={() => setTab('structure')} className={`font-bold transition ${tab==='structure'?'text-indigo-400 border-b-2 border-indigo-400 pb-4': 'text-gray-500'}`}>1. Structure</button>
+                                <button onClick={() => setTab('questions')} className={`font-bold transition ${tab==='questions'?'text-indigo-400 border-b-2 border-indigo-400 pb-4': 'text-gray-500'}`}>2. Questions</button>
+                                <button onClick={() => setTab('ads')} className={`font-bold transition ${tab==='ads'?'text-indigo-400 border-b-2 border-indigo-400 pb-4': 'text-gray-500'}`}>3. Ads</button>
+                                <button onClick={() => setView('home')} className="ml-auto text-red-400 font-bold">EXIT ADMIN</button>
+                            </div>
+
+                            {tab === 'structure' && (
+                                <div className="space-y-8">
+                                    <div className="flex gap-3">
+                                        <input className="admin-input flex-1" placeholder="New Section (SSC, Railway...)" value={newSec} onChange={e=>setNewSec(e.target.value)} />
+                                        <button onClick={()=>{setDb({...db, sections: [...db.sections, {id: Date.now(), title: newSec, tests: []}]}); setNewSec("");}} className="bg-indigo-600 px-8 rounded-xl font-bold">ADD</button>
                                     </div>
-                                    {opt}
-                                </button>
-                            ))}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {db.sections.map(s => (
+                                            <div key={s.id} className="bg-white/5 p-6 rounded-[2rem] border border-white/5">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <span className="font-black text-indigo-400 uppercase tracking-tighter">{s.title}</span>
+                                                    <button onClick={()=>createTest(s.id)} className="text-[10px] bg-emerald-600 px-3 py-1 rounded-lg font-bold">+ ADD TEST</button>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {s.tests.map(t => <span key={t.id} className="bg-black/40 px-2 py-1 rounded text-[9px] border border-white/5">{t.title}</span>)}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {tab === 'questions' && (
+                                <div className="grid gap-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <select className="admin-input opacity-60" onChange={e => setSelectedParentId(e.target.value)}>
+                                            <option>Select Section</option>
+                                            {db.sections.map(s => <option key={s.id} value={s.id} className="bg-slate-900">{s.title}</option>)}
+                                        </select>
+                                        <select className="admin-input opacity-60" onChange={e => setSelectedTestId(e.target.value)}>
+                                            <option>Select Test</option>
+                                            {db.sections.find(s => s.id === selectedParentId)?.tests.map(t => <option key={t.id} value={t.id} className="bg-slate-900">{t.title}</option>)}
+                                        </select>
+                                    </div>
+                                    <textarea className="admin-input h-24" placeholder="Enter Question..." onChange={e=>setQData({...qData, text: e.target.value})} value={qData.text}></textarea>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {qData.options.map((o, i) => <input key={i} className="admin-input text-sm" placeholder={`Option ${String.fromCharCode(65+i)}`} value={o} onChange={e => {const copy=[...qData.options]; copy[i]=e.target.value; setQData({...qData, options: copy});}} />)}
+                                    </div>
+                                    <input type="number" className="admin-input" placeholder="Correct Option Index (0-3)" value={qData.correct} onChange={e=>setQData({...qData, correct: parseInt(e.target.value)})} />
+                                    <textarea className="admin-input h-20" placeholder="AI Analysis / Explanation..." onChange={e=>setQData({...qData, analysis: e.target.value})} value={qData.analysis}></textarea>
+                                    <button onClick={() => {
+                                        if(!selectedTestId) return alert("Pehle Test select karein!");
+                                        const updated = db.sections.map(s => s.id === selectedParentId ? {...s, tests: s.tests.map(t => t.id == selectedTestId ? {...t, questions: [...t.questions, qData]} : t)} : s);
+                                        setDb({...db, sections: updated});
+                                        setQData({ text: '', options: ['', '', '', ''], correct: 0, analysis: '' });
+                                        alert("Question Added!");
+                                    }} className="w-full bg-indigo-600 py-4 rounded-2xl font-bold mt-4 shadow-lg shadow-indigo-600/20">SAVE TO QUESTION BANK</button>
+                                </div>
+                            )}
+
+                            {tab === 'ads' && (
+                                <div className="space-y-4">
+                                    {db.ads.map(ad => (
+                                        <div key={ad.id} className="glass p-6 rounded-2xl flex gap-4 items-center">
+                                            <input className="admin-input flex-1" value={ad.text} onChange={e => {
+                                                const newAds = db.ads.map(a => a.id === ad.id ? {...a, text: e.target.value} : a);
+                                                setDb({...db, ads: newAds});
+                                            }} />
+                                            <button onClick={() => {
+                                                const newAds = db.ads.map(a => a.id === ad.id ? {...a, active: !a.active} : a);
+                                                setDb({...db, ads: newAds});
+                                            }} className={`px-6 py-2 rounded-xl font-bold ${ad.active ? 'bg-emerald-600':'bg-gray-700'}`}>{ad.active ? 'ON':'OFF'}</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
-                    <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md p-5 border-t border-gray-100 flex gap-4 max-w-lg mx-auto rounded-t-3xl">
-                        <button disabled={currIdx===0} onClick={()=>setCurrIdx(currIdx-1)} className={`flex-1 py-4 rounded-2xl font-bold transition ${currIdx===0 ? 'bg-gray-100 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>Back</button>
-                        {currIdx < 14 ? 
-                            <button onClick={()=>setCurrIdx(currIdx+1)} className="flex-[2] bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg">Next Question</button> :
-                            <button onClick={()=>setView('result')} className="flex-[2] bg-green-600 text-white py-4 rounded-2xl font-bold shadow-lg">Submit Test</button>
-                        }
-                    </div>
-                </div>
-            );
-            
-            // Result View
-            if (view === 'result') return (
-                <div className="min-h-screen bg-indigo-600 flex items-center justify-center p-6">
-                    <div className="glass-card rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl">
-                        <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <i className="fas fa-trophy text-white text-4xl"></i>
-                        </div>
-                        <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Great Work!</h2>
-                        <p className="text-gray-400 font-semibold mb-8">You have completed the test</p>
-                        
-                        <div className="bg-indigo-50 rounded-3xl p-8 mb-8 border border-indigo-100">
-                            <p className="text-indigo-400 font-bold uppercase text-xs tracking-widest mb-1">Final Score</p>
-                            <h3 className="text-6xl font-black text-indigo-600">{score}<span className="text-2xl text-indigo-300">/15</span></h3>
+                );
+            };
+
+            const ResultView = () => {
+                let correct = 0, wrong = 0;
+                const negVal = activeTest?.neg || 0;
+
+                currentQuestions.forEach((q, i) => {
+                    if(userAnswers[i] !== undefined) {
+                        if(userAnswers[i] === q.correct) correct++;
+                        else wrong++;
+                    }
+                });
+
+                const totalNeg = (wrong * negVal).toFixed(2);
+                const score = (correct - totalNeg).toFixed(2);
+
+                return (
+                    <div className="max-w-4xl mx-auto p-6 pt-10 animate-in fade-in">
+                        <div className="glass p-12 rounded-[3.5rem] text-center mb-10 border-b-8 border-indigo-500 shadow-2xl">
+                            <h2 className="text-8xl font-black text-indigo-400 mb-4">{score}</h2>
+                            <p className="text-gray-400 uppercase tracking-widest text-xs font-bold">Total Adjusted Score</p>
+                            <div className="grid grid-cols-3 gap-6 mt-10 max-w-xl mx-auto">
+                                <div className="bg-emerald-500/10 p-5 rounded-3xl border border-emerald-500/20"><p className="text-[10px] text-emerald-500 font-bold uppercase mb-1">Correct</p><p className="text-3xl font-bold">{correct}</p></div>
+                                <div className="bg-red-500/10 p-5 rounded-3xl border border-red-500/20"><p className="text-[10px] text-red-500 font-bold uppercase mb-1">Wrong</p><p className="text-3xl font-bold">{wrong}</p></div>
+                                <div className="bg-orange-500/10 p-5 rounded-3xl border border-orange-500/20"><p className="text-[10px] text-orange-500 font-bold uppercase mb-1">Penalty</p><p className="text-3xl font-bold">-{totalNeg}</p></div>
+                            </div>
+                            <button onClick={() => setView('home')} className="mt-12 bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-full font-bold transition shadow-xl shadow-indigo-600/20">TRY ANOTHER TEST</button>
                         </div>
 
-                        <button onClick={()=>setView('analysis')} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold mb-4 shadow-lg">View Analysis</button>
-                        <button onClick={()=>setView('home')} className="w-full text-indigo-600 font-bold hover:bg-indigo-50 py-3 rounded-xl transition">Back to Home</button>
-                    </div>
-                </div>
-            );
+                        <h3 className="text-2xl font-black mb-8 flex items-center gap-3"><i className="fas fa-brain text-indigo-500"></i> AI TEST INSIGHTS</h3>
+                        <div className="space-y-8">
+                            {currentQuestions.map((q, i) => (
+                                <div key={i} className="glass rounded-[2.5rem] overflow-hidden border border-white/5">
+                                    <div className="p-8 bg-white/5 border-b border-white/5">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <span className="bg-indigo-500 text-[10px] px-3 py-1 rounded-full font-bold">QUESTION {i+1}</span>
+                                            {userAnswers[i] === q.correct ? <span className="text-emerald-500 text-sm font-black italic">✓ CORRECT</span> : <span className="text-red-500 text-sm font-black italic">✗ WRONG</span>}
+                                        </div>
+                                        <p className="text-xl font-medium leading-relaxed">{q.text}</p>
+                                    </div>
+                                    <div className="p-8 grid md:grid-cols-2 gap-4">
+                                        {q.options.map((opt, oIdx) => (
+                                            <div key={oIdx} className={`p-5 rounded-2xl border flex items-center gap-4 text-sm ${oIdx === q.correct ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300' : (userAnswers[i] === oIdx ? 'bg-red-500/10 border-red-500/40 text-red-300' : 'bg-white/5 border-white/10')}`}>
 
-            // Analysis View
-            if (view === 'analysis') return (
-                <div className="min-h-screen bg-gray-50 p-4">
-                    <div className="max-w-lg mx-auto">
-                        <h2 className="text-3xl font-black text-gray-800 text-center mt-6 mb-10">Review Answers</h2>
-                        <div className="space-y-6">
-                            {testQs.map((q, i) => (
-                                <div key={i} className={`bg-white p-6 rounded-3xl shadow-sm border-l-8 ${userAns[i] === q.a ? 'border-green-500' : 'border-red-500'}`}>
-                                    <p className="font-bold text-gray-800 text-lg mb-4">{i+1}. {q.q}</p>
-                                    <div className="space-y-2 p-4 rounded-2xl bg-gray-50">
-                                        <p className="text-green-600 font-bold flex items-center gap-2">
-                                            <i className="fas fa-check-circle"></i> Correct: {q.o[q.a]}
-                                        </p>
-                                        {userAns[i] !== q.a && (
-                                            <p className="text-red-500 font-bold flex items-center gap-2">
-                                                <i className="fas fa-times-circle"></i> Yours: {userAns[i] !== undefined ? q.o[userAns[i]] : 'Skipped'}
-                                            </p>
-                                        )}
+                                                <span className="text-[10px] font-black opacity-40">{String.fromCharCode(65+oIdx)}</span> {opt}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="p-8 bg-indigo-500/5 border-t border-indigo-500/10">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                            <div className="bg-black/20 p-4 rounded-2xl border border-white/5 text-center">
+                                                <p className="text-[9px] text-gray-500 uppercase font-bold mb-1 tracking-widest">Topic</p>
+                                                <p className="text-xs font-bold text-indigo-300">Exam Core</p>
+                                            </div>
+                                            <div className="bg-black/20 p-4 rounded-2xl border border-white/5 text-center">
+                                                <p className="text-[9px] text-gray-500 uppercase font-bold mb-1 tracking-widest">Success Rate</p>
+                                                <p className="text-xs font-bold text-emerald-400">75% Avg</p>
+                                            </div>
+                                            <div className="bg-black/20 p-4 rounded-2xl border border-white/5 text-center">
+                                                <p className="text-[9px] text-gray-500 uppercase font-bold mb-1 tracking-widest">Ideal Time</p>
+                                                <p className="text-xs font-bold">45s</p>
+                                            </div>
+                                            <div className="bg-black/20 p-4 rounded-2xl border border-white/5 text-center">
+                                                <p className="text-[9px] text-gray-500 uppercase font-bold mb-1 tracking-widest">Priority</p>
+                                                <p className="text-xs font-bold text-orange-400">High</p>
+                                            </div>
+                                        </div>
+                                        <div className="p-6 bg-indigo-500/10 rounded-3xl border-l-4 border-indigo-500 text-sm italic text-indigo-100/70 leading-relaxed">
+                                            <b className="not-italic text-indigo-400 block mb-2 uppercase text-[10px] tracking-widest">AI Expert View:</b>
+                                            {q.analysis || "Iss sawal ka vistaar purvak vivran exam ke mukhya patterns par adharit hai."}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <button onClick={()=>setView('home')} className="w-full bg-indigo-600 text-white py-5 rounded-3xl font-bold text-xl shadow-xl my-10 sticky bottom-6">Try New Test</button>
                     </div>
+                );
+            };
+            
+            return (
+                <div className="pb-10">
+                    {view === 'home' && <HomeView />}
+                    {view === 'sub-list' && <SubListView />}
+                    {view === 'admin' && <AdminPanel />}
+                    {view === 'testing' && (
+                        <div className="max-w-4xl mx-auto p-4 pt-10">
+                            <div className="flex justify-between items-center mb-8 glass p-6 rounded-3xl border-b-2 border-indigo-500">
+                                <div>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">{activeTest.title}</p>
+                                    <p className="font-black text-indigo-400">Q {currentIndex+1} / {currentQuestions.length}</p>
+                                </div>
+                                <div className={`text-3xl font-mono px-6 py-2 rounded-2xl ${timeLeft < 60 ? 'bg-red-500 animate-pulse text-white' : 'bg-white/5 text-gray-300'}`}>
+                                    {Math.floor(timeLeft/60)}:{(timeLeft%60).toString().padStart(2,'0')}
+                                </div>
+                            </div>
+                            <div className="glass p-10 rounded-[3.5rem] mb-8 min-h-[400px] flex flex-col justify-center">
+                                <h2 className="text-2xl md:text-3xl font-bold leading-snug mb-12">{currentQuestions[currentIndex].text}</h2>
+                                <div className="grid gap-4">
+                                    {currentQuestions[currentIndex].options.map((opt, i) => (
+                                        <button key={i} onClick={() => setUserAnswers({...userAnswers, [currentIndex]: i})} className={`p-6 rounded-3xl text-left border-2 transition-all flex items-center gap-5 group ${userAnswers[currentIndex] === i ? 'active-opt' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+                                            <span className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center font-black group-hover:bg-white/10">{String.fromCharCode(65+i)}</span>
+                                            <span className="font-medium">{opt}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <button disabled={currentIndex===0} onClick={()=>setCurrentIndex(currentIndex-1)} className="flex-1 glass p-6 rounded-3xl font-bold disabled:opacity-20 transition">PREVIOUS</button>
+                                {currentIndex === currentQuestions.length-1 ? 
+                                    <button onClick={()=>setView('result')} className="flex-1 bg-emerald-600 p-6 rounded-3xl font-bold shadow-xl shadow-emerald-600/20">FINISH TEST</button> :
+                                    <button onClick={()=>setCurrentIndex(currentIndex+1)} className="flex-1 bg-indigo-600 p-6 rounded-3xl font-bold shadow-xl shadow-indigo-600/20">SAVE & NEXT</button>
+                                }
+                            </div>
+                        </div>
+                    )}
+                    {view === 'result' && <ResultView />}
                 </div>
             );
         }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
