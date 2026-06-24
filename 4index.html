@@ -213,9 +213,10 @@ const handleSecretClick = () => {
             }, [view, timer]);
 
             const startTest = () => {
-                let history = JSON.parse(localStorage.getItem('mt_history') || '[]');
-                let available = questionsDb.filter(q => !history.includes(q.id));
-                if (available.length < 15) { history = []; available = [...questionsDb]; }
+    let history = JSON.parse(localStorage.getItem('mt_history') || '[]');
+    // questionsDb ki jagah 'questions' state use karein:
+    let available = questions.filter(q => !history.includes(q.id));
+    if (available.length < 15) { history = []; available = [...questions]; }
                 const picked = available.sort(() => 0.5 - Math.random()).slice(0, 15);
                 localStorage.setItem('mt_history', JSON.stringify([...history, ...picked.map(p => p.id)]));
                 setTestQs(picked);
@@ -233,9 +234,7 @@ const handleSecretClick = () => {
                     <div className="glass-card rounded-[2rem] p-10 max-w-sm w-full text-center shadow-2xl">
                         <div onClick={handleSecretClick} className="w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl cursor-pointer active:scale-95 transition transform rotate-12">
     <i className="fas fa-rocket text-white text-4xl -rotate-12"></i>
-
-                            <i className="fas fa-rocket text-white text-4xl -rotate-12"></i>
-                        </div>
+</div>
                         <h1 className="text-4xl font-extrabold text-indigo-900 mb-2">Meri Tyari</h1>
                         <p className="text-indigo-500 font-semibold mb-10">Premium GS Practice App</p>
                         
@@ -277,18 +276,33 @@ const handleSecretClick = () => {
                 <option value="3">D Sahi hai</option>
             </select>
             <button onClick={() => {
-                const newQ = {
-                    id: Date.now(),
-                    q: document.getElementById('q').value,
-                    o: [document.getElementById('o1').value, document.getElementById('o2').value, document.getElementById('o3').value, document.getElementById('o4').value],
-                    a: parseInt(document.getElementById('ans').value)
-                };
-                const updated = [...questions, newQ];
-                setQuestions(updated);
-                localStorage.setItem('my_db', JSON.stringify(updated));
-                alert("Sawal Save Ho Gaya!");
-                document.getElementById('q').value = ''; // Clear input
-            }} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Add Question</button>
+    const qEl = document.getElementById('q');
+    const o1El = document.getElementById('o1');
+    const o2El = document.getElementById('o2');
+    const o3El = document.getElementById('o3');
+    const o4El = document.getElementById('o4');
+    const ansEl = document.getElementById('ans');
+
+    // Validation: Khali sawal save na ho
+    if(!qEl.value || !o1El.value || !o2El.value) {
+        alert("Sawal aur options bharna zaroori hai!");
+        return;
+    }
+
+    const newQ = {
+        id: Date.now(),
+        q: qEl.value,
+        o: [o1El.value, o2El.value, o3El.value, o4El.value],
+        a: parseInt(ansEl.value)
+    };
+    const updated = [...questions, newQ];
+    setQuestions(updated);
+    localStorage.setItem('my_db', JSON.stringify(updated));
+    alert("Sawal Save Ho Gaya!");
+    
+    // Saare inputs ko clear karein
+    qEl.value = ''; o1El.value = ''; o2El.value = ''; o3El.value = ''; o4El.value = '';
+}} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Add Question</button>
         </div>
         <h3 className="font-bold mb-4 italic">Sawal Bank ({questions.length})</h3>
         {questions.slice().reverse().map(q => (
